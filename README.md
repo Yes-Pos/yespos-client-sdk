@@ -207,6 +207,21 @@ npm run typecheck
 npm run build
 ```
 
+## Rilis
+
+Publish ke npm berjalan otomatis dari GitHub Actions saat tag versi di-push.
+
+```bash
+npm version patch        # atau minor / major — mengubah package.json + membuat tag
+git push --follow-tags   # tag v* memicu workflow Release
+```
+
+Workflow `release.yml` memastikan tag cocok dengan `package.json`, menjalankan typecheck + test + build, lalu `npm publish` dan membuat GitHub Release.
+
+Autentikasi ke npm memakai **Trusted Publishing (OIDC)**: npm memverifikasi workflow lewat GitHub, jadi tidak ada token npm yang disimpan di repo. Setup sekali di halaman paket npmjs.com → **Settings → Trusted Publishers** → GitHub Actions, isi repo dan nama workflow `release.yml`.
+
+> Publish **pertama** tetap manual (`npm publish`), karena trusted publisher baru bisa didaftarkan setelah paketnya ada di npm.
+
 ## Lisensi
 
 MIT
