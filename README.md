@@ -218,7 +218,20 @@ git push --follow-tags   # tag v* memicu workflow Release
 
 Workflow `release.yml` memastikan tag cocok dengan `package.json`, menjalankan typecheck + test + build, lalu `npm publish` dan membuat GitHub Release.
 
-Autentikasi ke npm memakai **Trusted Publishing (OIDC)**: npm memverifikasi workflow lewat GitHub, jadi tidak ada token npm yang disimpan di repo. Setup sekali di halaman paket npmjs.com → **Settings → Trusted Publishers** → GitHub Actions, isi repo dan nama workflow `release.yml`.
+Autentikasi ke npm memakai **Trusted Publishing (OIDC)**: npm memverifikasi workflow lewat GitHub, jadi tidak ada token npm yang disimpan di repo. Provenance ikut dibuat otomatis.
+
+Setup sekali di npmjs.com → paket → **Settings → Trusted publishing → GitHub Actions**:
+
+| Isian | Nilai |
+|---|---|
+| Organization or user | `Yes-Pos` |
+| Repository | `yespos-client-sdk` |
+| Workflow filename | `release.yml` |
+| Allowed actions | centang **`npm publish`** (selain `npm stage publish`) |
+
+`npm publish` perlu dicentang agar rilis berjalan penuh otomatis. Kalau hanya `npm stage publish` yang aktif, workflow hanya menaruh versi di staging dan kamu harus menyetujuinya dengan 2FA (`npm stage approve <stage-id>`) — lebih aman, tapi tidak otomatis.
+
+Syarat: `repository.url` di package.json harus sama persis dengan repo GitHub-nya, dan konfigurasi trusted publisher harus dipakai untuk publish pertama dalam 2 hari atau kedaluwarsa.
 
 > Publish **pertama** tetap manual (`npm publish`), karena trusted publisher baru bisa didaftarkan setelah paketnya ada di npm.
 
