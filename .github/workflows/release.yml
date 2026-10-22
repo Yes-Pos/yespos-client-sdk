@@ -1,0 +1,51 @@
+name: Release
+
+# Publishes to npm when a version tag is pushed:
+#   npm version patch   # bumps package.json and creates the tag
+#   git push --follow-tags
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      # Trusted Publishing: npm verifies this workflow through GitHub's OIDC,
+      # so no npm token is stored anywhere.
+      id-token: write
+      # Needed to create the GitHub Release below.
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      # Trusted Publishing needs npm 11.5.1 or newer.
+      - run: npm install -g npm@latest
+
+      - run: npm ci
+
+      - name: Tag harus sama dengan versi di package.json
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "Tag v$TAG tidak cocok dengan package.json ($PKG). Jalankan 'npm version' agar keduanya sama."
+            exit 1
+          fi
+
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      - name: Publish ke npm
+        run: npm publish
+
+      - name: Buat GitHub Release
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
