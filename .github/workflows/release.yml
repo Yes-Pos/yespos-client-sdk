@@ -43,12 +43,30 @@ jobs:
       - run: npm test
       - run: npm run build
 
+      # Staged publishing: CI may only put the version in the staging area, so a
+      # hijacked workflow cannot ship anything to users on its own. A maintainer
+      # approves it with 2FA, which is what npm calls proof-of-presence.
       # Provenance is generated automatically by trusted publishing, so no
       # --provenance flag and no npm token are needed here.
-      - name: Publish ke npm
-        run: npm publish
+      - name: Stage ke npm
+        run: npm stage publish
 
       - name: Buat GitHub Release
         run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
         env:
           GH_TOKEN: ${{ github.token }}
+
+      - name: Langkah terakhir
+        run: |
+          {
+            echo "### $GITHUB_REF_NAME sudah di-stage ke npm"
+            echo
+            echo "Versi ini **belum bisa di-install** sampai disetujui. Jalankan di mesinmu:"
+            echo
+            echo '```bash'
+            echo "npm stage list @yespos/client     # ambil stage-id"
+            echo "npm stage approve <stage-id>      # minta 2FA, lalu versi terbit"
+            echo '```'
+            echo
+            echo "Atau lewat npmjs.com → paket → tab **Staged Packages** → Approve."
+          } >> "$GITHUB_STEP_SUMMARY"

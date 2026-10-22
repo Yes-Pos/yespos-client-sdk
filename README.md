@@ -227,9 +227,18 @@ Setup sekali di npmjs.com → paket → **Settings → Trusted publishing → Gi
 | Organization or user | `Yes-Pos` |
 | Repository | `yespos-client-sdk` |
 | Workflow filename | `release.yml` |
-| Allowed actions | centang **`npm publish`** (selain `npm stage publish`) |
+| Allowed actions | cukup **`npm stage publish`** (biarkan `npm publish` tidak dicentang) |
 
-`npm publish` perlu dicentang agar rilis berjalan penuh otomatis. Kalau hanya `npm stage publish` yang aktif, workflow hanya menaruh versi di staging dan kamu harus menyetujuinya dengan 2FA (`npm stage approve <stage-id>`) — lebih aman, tapi tidak otomatis.
+Workflow memakai **staged publishing**: CI hanya boleh menaruh versi di ruang tunggu, lalu kamu menyetujuinya dengan 2FA:
+
+```bash
+npm stage list @yespos/client     # ambil stage-id
+npm stage approve <stage-id>      # minta 2FA, lalu versi terbit
+```
+
+Atau lewat npmjs.com → paket → tab **Staged Packages** → Approve. Perintahnya juga muncul di ringkasan job Actions setelah rilis.
+
+Alasannya: tanpa langkah ini, siapa pun yang bisa mendorong tag — atau dependency build yang disusupi — dapat menerbitkan versi ke semua pengguna tanpa sepengetahuan manusia.
 
 Syarat: `repository.url` di package.json harus sama persis dengan repo GitHub-nya, dan konfigurasi trusted publisher harus dipakai untuk publish pertama dalam 2 hari atau kedaluwarsa.
 
